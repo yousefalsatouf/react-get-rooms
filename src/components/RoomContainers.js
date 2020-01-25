@@ -11,13 +11,13 @@ function RoomContainers({context})
     {
         return <Loading />;
     }
-
+    console.log(sortedRooms);
     return (
-        <div>
+        <>
             Hello from Container
             <RoomsFilter rooms={rooms}/>
             <RoomsList rooms={sortedRooms}/>
-        </div>
+        </>
     )
 
 }
