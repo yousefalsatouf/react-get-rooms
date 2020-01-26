@@ -14,7 +14,6 @@ function RoomContainers({context})
     console.log(sortedRooms);
     return (
         <>
-            Hello from Container
             <RoomsFilter rooms={rooms}/>
             <RoomsList rooms={sortedRooms}/>
         </>

@@ -1,5 +1,7 @@
 import React, {Component} from "react";
-import items from './data';
+//import items from './data';
+import Client from './contectful';
+
 
 const RoomContext = React.createContext();
 
@@ -21,25 +23,36 @@ class RoomProvider extends Component
         pets: false
     };
 
+    getData = async () => {
+        try
+        {
+            let response = await Client.getEntries({content_type: 'beachResortRoom', order: 'sys.createdAt'});
+
+            let rooms = this.formatData(response.items);
+            let featuredRooms = rooms.filter(room =>room.featured === true);
+            let maxPrice = Math.max(...rooms.map(item => item.price));
+            let maxSize = Math.max(...rooms.map(item => item.size));
+
+            console.log(maxSize);
+            console.log(maxPrice);
+
+            this.setState({
+                rooms,
+                featuredRooms,
+                sortedRooms: rooms,
+                loading: false,
+                maxPrice: maxPrice,
+                maxSize: maxSize
+            });
+
+        }catch (e) {
+            console.log(e)
+        }
+    };
+
     componentDidMount()
     {
-        let rooms = this.formatData(items);
-        let featuredRooms = rooms.filter(room =>room.featured === true);
-        let maxPrice = Math.max(...rooms.map(item => item.price));
-        let maxSize = Math.max(...rooms.map(item => item.size));
-
-        console.log(maxSize);
-        console.log(maxPrice);
-
-        this.setState({
-            rooms,
-            featuredRooms,
-            sortedRooms: rooms,
-            loading: false,
-            maxPrice: maxPrice,
-            maxSize: maxSize
-        });
-
+        this.getData()
     }
 
 
@@ -63,14 +76,49 @@ class RoomProvider extends Component
         return room;
     };
     handelChange = e => {
-        const type = e.target.type;
+        const target = e.target;
+        const value = target.type === "checkbox" ? target.checked : target.value;
         const name = e.target.name;
-        const value = e.target.value;
 
-        console.log(type, name, value);
+        this.setState({
+            [name] : value
+        },
+            this.filterRooms);
     };
 
     filterRooms = () => {
+        let {rooms, type, capacity, price, minSize, maxSize, breakfast, pets} = this.state;
+
+        let tempRooms = [...rooms];
+
+        capacity = parseInt(capacity);
+
+        price = parseInt(price);
+
+        if (type !== 'all')
+        {
+            tempRooms = tempRooms.filter(room => room.type === type);
+        }
+
+        if (capacity !== 1)
+        {
+            tempRooms = tempRooms.filter(room => room.capacity >= capacity);
+        }
+
+        if (breakfast)
+        {
+            tempRooms = tempRooms.filter(room => room.breakfast === true);
+        }
+
+        if (pets)
+        {
+            tempRooms = tempRooms.filter(room => room.pets === true);
+        }
+
+        tempRooms = tempRooms.filter(room => room.price <= price);
+        tempRooms = tempRooms.filter(room => room.size >= minSize && room.size <= maxSize);
+
+        this.setState({sortedRooms: tempRooms});
     };
 
     render ()
